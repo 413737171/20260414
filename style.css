@@ -1,0 +1,72 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 100%;
+  background: #eef2f7;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2f3d4a;
+}
+
+body {
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+#p5-canvas-container {
+  width: 36%;
+  min-width: 360px;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(180deg, #f7f9fc 0%, #e4f0ff 100%);
+  box-shadow: 2px 0 20px rgba(56, 81, 112, 0.12);
+  overflow: hidden;
+}
+
+#p5-canvas-container canvas {
+  display: block;
+}
+
+#panel-title {
+  position: absolute;
+  top: 28px;
+  left: 24px;
+  right: 24px;
+  z-index: 10;
+}
+
+#panel-title h1 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  color: #2d3e50;
+}
+
+#panel-title p {
+  margin: 10px 0 0;
+  line-height: 1.6;
+  color: #566573;
+  font-size: 0.95rem;
+}
+
+#hint {
+  position: absolute;
+  bottom: 28px;
+  left: 24px;
+  right: 24px;
+  color: #5c6b7b;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  z-index: 10;
+}
+
+#content-iframe {
+  width: 64%;
+  height: 100vh;
+  border: none;
+  background-color: #f8f9ff;
+}
