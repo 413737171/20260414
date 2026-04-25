@@ -12,17 +12,21 @@ class TimelineNode {
     this.targetSize = nodeSize;
     this.bloomFactor = 0;
     this.animationSpeed = 0.12;
+    this.isActive = false; // 新增：追蹤是否為當前選中節點
   }
 
   checkHover(mx, my) {
     let d = dist(mx, my, this.x, this.y);
     this.isHovered = d < this.nodeSize / 2;
-    this.targetSize = this.isHovered ? this.nodeSize * 1.25 : this.nodeSize;
+    // 如果是選中狀態或滑鼠懸停，保持較大尺寸
+    this.targetSize = (this.isHovered || this.isActive) ? this.nodeSize * 1.25 : this.nodeSize;
   }
 
   display() {
     this.currentSize = lerp(this.currentSize, this.targetSize, this.animationSpeed);
-    this.bloomFactor = lerp(this.bloomFactor, this.isHovered ? 1 : 0, this.animationSpeed);
+    // 如果是選中狀態，花朵保持半綻放以上
+    let targetBloom = this.isHovered ? 1 : (this.isActive ? 0.6 : 0);
+    this.bloomFactor = lerp(this.bloomFactor, targetBloom, this.animationSpeed);
 
     push();
     translate(this.x, this.y);
@@ -58,7 +62,15 @@ class TimelineNode {
       drawNodeLeaves(this.currentSize * 0.8);
     }
 
-    fill(34, 34, 34);
+    // 選中時文字加粗或改變顏色
+    if (this.isActive) {
+      fill(139, 77, 197);
+      stroke(255);
+      strokeWeight(1);
+    } else {
+      fill(34, 34, 34);
+      noStroke();
+    }
     textAlign(CENTER, CENTER);
     textSize(this.currentSize * 0.35);
     text(`W${this.weekNum}`, 0, 0);
@@ -77,7 +89,8 @@ class TimelineNode {
 
   isClicked(mx, my) {
     let d = dist(mx, my, this.x, this.y);
-    return d < this.nodeSize / 2;
+    // 擴大點擊判定範圍，確保點擊到綻放後的花瓣也能正確觸發
+    return d < this.currentSize * 0.8;
   }
 
   updateIframe() {
@@ -123,14 +136,20 @@ function setup() {
   const canvas = createCanvas(canvasWidth, canvasHeight);
   canvas.parent('p5-canvas-container');
 
-  nodes.push(new TimelineNode(canvasWidth * 0.28, canvasHeight * 0.82, 1, 'week1.html', 40));
-  nodes.push(new TimelineNode(canvasWidth * 0.51, canvasHeight * 0.53, 2, 'week2.html', 46));
+  nodes.push(new TimelineNode(canvasWidth * 0.22, canvasHeight * 0.85, 1, 'https://413737171.github.io/20260303-2/', 40));
+  nodes.push(new TimelineNode(canvasWidth * 0.36, canvasHeight * 0.72, 2, 'https://413737171.github.io/20260407-1/', 42));
+  nodes.push(new TimelineNode(canvasWidth * 0.51, canvasHeight * 0.53, 3, 'https://413737171.github.io/20260317/', 44));
+  nodes.push(new TimelineNode(canvasWidth * 0.64, canvasHeight * 0.41, 4, 'https://413737171.github.io/20260324/', 46));
+  nodes.push(new TimelineNode(canvasWidth * 0.78, canvasHeight * 0.28, 5, 'https://413737171.github.io/20260310/', 48));
+  nodes.push(new TimelineNode(canvasWidth * 0.72, canvasHeight * 0.15, 6, 'https://413737171.github.io/20260420-1/', 50));
 
+  nodes[0].isActive = true; // 預設第一週為選中狀態
   nodes[0].updateIframe();
 }
 
 function draw() {
   background(247, 248, 251);
+
   drawVine();
   for (let node of nodes) {
     node.checkHover(mouseX, mouseY);
@@ -171,11 +190,14 @@ function drawRootLeaves(x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5, x6, y6) 
     {x: x1, y: y1, dir: 1},
     {x: x2, y: y2, dir: -1},
     {x: x3, y: y3, dir: 1},
-    {x: x5, y: y5, dir: -1}
+    {x: x4, y: y4, dir: -1},
+    {x: x5, y: y5, dir: 1},
   ];
-
   for (let leaf of leafPositions) {
-    let sway = sin(frameCount * 0.04 + leaf.y * 0.05) * 10;
+    // 讓葉子感應滑鼠距離，滑鼠靠近時會抖動（風吹感）
+    let d = dist(mouseX, mouseY, leaf.x, leaf.y);
+    let wind = d < 100 ? map(d, 0, 100, 20, 0) : 0;
+    let sway = sin(frameCount * 0.04 + leaf.y * 0.05) * (10 + wind);
     let leafWidth = 38;
     let leafHeight = 78;
     push();
@@ -199,6 +221,9 @@ function drawRootLeaves(x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5, x6, y6) 
 function mouseClicked() {
   for (let node of nodes) {
     if (node.isClicked(mouseX, mouseY)) {
+      // 先將所有節點設為非選中，再將點擊的設為選中
+      nodes.forEach(n => n.isActive = false);
+      node.isActive = true;
       node.updateIframe();
       break;
     }
@@ -210,8 +235,12 @@ function windowResized() {
   canvasWidth = container.offsetWidth;
   canvasHeight = container.offsetHeight;
   resizeCanvas(canvasWidth, canvasHeight);
-  if (nodes.length >= 2) {
-    nodes[0].setPosition(canvasWidth * 0.28, canvasHeight * 0.82);
-    nodes[1].setPosition(canvasWidth * 0.51, canvasHeight * 0.53);
+  if (nodes.length >= 6) {
+    nodes[0].setPosition(canvasWidth * 0.22, canvasHeight * 0.85);
+    nodes[1].setPosition(canvasWidth * 0.36, canvasHeight * 0.72);
+    nodes[2].setPosition(canvasWidth * 0.51, canvasHeight * 0.53);
+    nodes[3].setPosition(canvasWidth * 0.64, canvasHeight * 0.41);
+    nodes[4].setPosition(canvasWidth * 0.78, canvasHeight * 0.28);
+    nodes[5].setPosition(canvasWidth * 0.72, canvasHeight * 0.15);
   }
 }
